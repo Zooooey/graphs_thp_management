@@ -22,6 +22,7 @@ using namespace std;
 extern int errno;
 
 int main(int argc, char** argv) {
+  printf("???simple\n");
   string graph_fname;
   csr_graph G;
   unsigned long start_seed, in_index, out_index, *ret, *in_wl, *out_wl;

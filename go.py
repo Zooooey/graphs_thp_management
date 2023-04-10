@@ -5,8 +5,10 @@ import sys
 
 from subprocess import Popen, PIPE
 
-HOME = "/home/aninda/vldb/" # ADD DIRECTORY PATH HERE
-GRAPH_DIR = HOME + "data/"
+HOME = "/home/ccy/data_set/THP/" # ADD DIRECTORY PATH HERE
+#HOME2 = "/mnt/thp_tmpfs/" # ADD DIRECTORY PATH HERE
+GRAPH_DIR = HOME + "big/"
+#GRAPH_DIR = HOME2
 RESULT_DIR = HOME + "results/"
 
 # APPS
@@ -25,7 +27,7 @@ inputs = {
 start_seed = {"Kronecker_25/": "0", "Twitter/": "0", "Sd1_Arc/": "0", "Wikipedia/": "0",
 	      "DBG_Kronecker_25/": "3287496", "DBG_Twitter/": "15994127", "DBG_Sd1_Arc/": "18290613", "DBG_Wikipedia/": "320944"}
 
-NUM_ITER = 3
+NUM_ITER = 1
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -74,6 +76,8 @@ def setup_run(madvise, exp_type, flipped=False):
           cmd_args += ["-ss", start_seed[input]]
         cmd = " ".join(cmd_args)
         run(cmd, tmp_output, exp_dir + output)
+      else:
+        print("Skip! previous test result path="+str(exp_dir+output)+" exist!")
 
 # Experiment 1: TLB Characterization
 def run_tlb_char():
@@ -89,7 +93,8 @@ def run_tlb_char():
 # Experiment 2: Data Structure Analysis
 def run_data_struct():
   default = "thp" if is_thp == 1 else "none"
-  end = 400 if is_thp == 0 else 1
+  #end = 400 if is_thp == 0 else 1
+  end = 400 if (is_thp == 0 or is_madvise_thp == True) else 1
   for madvise in range(0, end, 100):
     exp_type = "data_struct/"
     if madvise == 100:
@@ -158,7 +163,7 @@ experiments = {
               }
 
 def main():
-  global apps, args, is_thp, datasets, vp_inputs
+  global apps, args, is_thp, datasets, vp_inputs, is_madvise_thp
 
   args = parse_args()
 
@@ -169,10 +174,15 @@ def main():
   output_str2 = stdout.read().decode("utf-8")
   if (output_str1.startswith("[always]") and output_str2.startswith("[always]")):
     is_thp = 1
+    is_madvise_thp = False
   elif (output_str1.startswith("[always]") and not output_str2.startswith("[always]")):
     is_thp = 2
+    is_madvise_thp = False
+  elif output_str1.startswith("[madvise]") :
+    is_madvise_thp = True
   else:
     is_thp = 0
+    is_madvise_thp = False
 
   # Apps
   if args.app and args.app != "all":
