@@ -79,6 +79,7 @@ int count_directory(const char* dir_name, const char* prefix) {
 }
 
 csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
+  cout<<"base dir of graph is :"<<base<<endl;
   csr_graph ret;
   ifstream nodes_edges_file(base + "num_nodes_edges.txt");
   unsigned long nodes, edges;
@@ -98,13 +99,11 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, ret.nodes * sizeof(unsigned long));
     int err;
     err = madvise(tmp, ret.nodes * sizeof(unsigned long), MADV_HUGEPAGE);
-    if (err != 0) perror("Error!");
-    else cout << "madvise successful!" << endl;
+    if (err != 0) perror("Error! madvise vertex_array");
+    else cout << "madvise vertex array memory successful!" << endl;
 
-    /*
     err = lock_memory((char*) tmp, ret.nodes * sizeof(unsigned long));
     if (err != 0) perror("Error!");
-    */
     
     ret.node_array = static_cast<unsigned long*>(tmp);
     
@@ -122,13 +121,13 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     int err;
     err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
-    if (err != 0) perror("Error!");
-    else cout << "madvise successful!" << endl;
+    if (err != 0) perror("Error! madvise edge_array");
+    else cout << "madvise edge_array successful!" << endl;
 
-    /*
+    
     err = lock_memory((char*) tmp, ret.edges * sizeof(unsigned long));
     if (err != 0) perror("Error!");
-    */
+    
     
     ret.edge_array = static_cast<unsigned long*>(tmp);
     
@@ -146,13 +145,13 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     int err;
     err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
-    if (err != 0) perror("Error!");
-    else cout << "madvise successful!" << endl;
+    if (err != 0) perror("Error! valuses_array");
+    else cout << "madvise values_array successful!" << endl;
 
-    /*
+    
     err = lock_memory((char*) tmp, ret.edges * sizeof(unsigned long));
     if (err != 0) perror("Error!");
-    */
+    
 
     ret.edge_values = static_cast<weightT*>(tmp);
   } else {

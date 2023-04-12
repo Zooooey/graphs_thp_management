@@ -52,15 +52,15 @@ void create_irreg_data(int run_kernel, unsigned long** ret) {
       else cout << "MADV_HUGEPAGE ret successful!" << endl;
     } else if (run_kernel == 100) {
       num_thp_nodes = num_nodes;
-      
+  	  printf("num_thp_nodes:%lu\n",num_nodes)    ;
       int err = madvise(*ret, num_nodes * sizeof(unsigned long), MADV_HUGEPAGE);
-      if (err != 0) perror("Error!");
-      else cout << "MADV_HUGEPAGE ret successful!" << endl;
+      if (err != 0) perror("Error! madvise prop_array");
+      else cout << "MADV_HUGEPAGE prop_array successful! num_nodes:"<<num_nodes<<" property memory region size(bytes):"<<num_nodes*sizeof(unsigned long) << endl;
 
-      /*
-      int err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
-      if (err != 0) perror("Error!");
-      */
+      
+      //err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
+      //if (err != 0) perror("Error!");
+      
     } else {
       num_thp_nodes = num_nodes;
     }
@@ -73,7 +73,7 @@ void launch_perf(int cpid, const char* perf_cmd) {
   struct stat done_buffer;
   char buf[MAX_BUFFER_SIZE];
   sprintf(buf, perf_cmd, pid);
-
+  
   printf("Perf process spawned! cpid %d waiting to run %s\n", cpid, buf);
   while (stat (done_filename, &done_buffer) != 0) {}
   printf("cpid %d running %s\n", cpid, buf);
@@ -87,9 +87,13 @@ void demote_pages(unsigned long *curr_num_thps) {
   ssize_t out;
   unsigned long pages_to_promote, pages_to_demote;
   unsigned long demotions = 0;
-  
+  if (threshold>1) {
+	printf("no demote since threshold >1 is:%f\n",threshold);
+	return;
+  }
   pages_to_promote = (unsigned long) (threshold*total_num_thps);
   pages_to_demote = (unsigned long) total_num_thps-pages_to_promote;
+  printf("total_num_thps:%lu pages_to_promote:%lu\n",total_num_thps,pages_to_promote);
  
   fprintf(stderr, "demoting: potential pages to demote = %lu\n\tstart = %lu, end = %lu\n\tbefore THPs = %lu, ", pages_to_demote, pages_to_promote, pages_to_promote+pages_to_demote, *curr_num_thps);
   iov.iov_len = pmd_pagesize;
@@ -124,6 +128,7 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
   fflush(stdout);
   system(cmd.c_str());
   */
+
 
   printf("THP tracking process spawned! cpid %d waiting to run\n", cpid);
   while (stat (done_filename, &done_buffer) != 0) {}
@@ -260,9 +265,9 @@ int main(int argc, char** argv) {
 
   parent_mask = numa_allocate_nodemask();
   if (!parent_mask) numa_error((char*) "numa_allocate_nodemask");
+  // numa node bind mask
   numa_bitmask_setbit(parent_mask, 1);
   numa_set_membind(parent_mask); 
-  
   if (run_kernel >= 0) {
     pid = getpid();
     pidfd = syscall(SYS_pidfd_open, pid, 0);

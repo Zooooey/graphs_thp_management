@@ -42,7 +42,7 @@ metric_vals = {}
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-x", "--num_samples", type=int, default=5, help="Number of experiment samples")
+    parser.add_argument("-x", "--num_samples", type=int, default=1, help="Number of experiment samples")
     parser.add_argument("-s", "--source", type=str, help="Path to source code file")
     parser.add_argument("-d", "--data", type=str, help="Path to data file")
     parser.add_argument("-rp", "--relative_path", type=int, default=0, help="Use relative data file path")
@@ -70,8 +70,8 @@ def execute(run_kernel, iteration=""):
 
     perf_name = "perf_output_" + run_kernel + "_" + iteration + ".txt" if iteration != "" else "perf_output_" + run_kernel + ".txt"
     if (os.path.isfile(output + perf_name)):
+        print("[Abort] aborting perf, may cause some issue. If you want to run perf, delete the path="+str(output+perf_name))
         return
-
     app_name = "app_output_" + run_kernel + "_" + iteration + ".txt" if iteration != "" else "app_output_" + run_kernel + ".txt"
     err_name = "err_output_" + run_kernel + "_" + iteration + ".txt" if iteration != "" else "err_output_" + run_kernel + ".txt"
     thp_name = "thp_output_" + run_kernel + "_" + iteration + ".txt" if iteration != "" else "thp_output_" + run_kernel + ".txt"
@@ -91,7 +91,7 @@ def execute(run_kernel, iteration=""):
     cmd_args += [">", app_name, "2>", err_name]
 
     cmd = " ".join(cmd_args)
-    print(cmd)
+    print("["+cmd+"]")
     os.system(cmd)
     
     time.sleep(5)
@@ -109,10 +109,12 @@ def measure(run_kernel, iteration=""):
     filename = output + "perf_output_" + run_kernel + "_" + iteration + ".txt" if iteration != "" else output + "perf_output_" + run_kernel + ".txt"
     if (not os.path.isfile(filename)):
         return
+    print("filename:"+filename)
     perf_output = open(filename, "r+")
     measurements = open(output + "measurements_" + iteration + ".txt", "w+")
 
     for line in perf_output:
+      print("line from perf_output is :"+line)
       line = line.replace(",","").replace("-", "")
       match1 = re.match("\s*(\d+)\s+(\w+\.?\w*\.?\w*\.?\w*\.?\w*)", line)
 
@@ -265,6 +267,7 @@ def main():
         start_time = time.time()
 
         compile()
+        print("Num Samples:" + str(num_samples))
         for i in range(num_samples):
             execute(run_kernel, str(i))
             measure(run_kernel, str(i))

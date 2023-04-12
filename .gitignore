@@ -3,6 +3,8 @@ __pycache__
 
 data/
 numactl/.o
+*.o
+
 
 **/dbg.txt
 **/dbg

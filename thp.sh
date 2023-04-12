@@ -9,6 +9,9 @@ CONFIG=$4
 echo "sync ; echo 3 > /proc/sys/vm/drop_caches"
 sync ; echo 3 > /proc/sys/vm/drop_caches
 
+	echo "echo 1 > /proc/sys/vm/compact_memory"
+	echo 1 > /proc/sys/vm/compact_memory
+
 echo "echo madvise > /sys/kernel/mm/transparent_hugepage/enabled"
 echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
 
@@ -21,6 +24,9 @@ sudo python3 go.py --experiment=$EXP --dataset=$DATASET --app=$APP --config=$CON
 # thp
 echo "sync ; echo 3 > /proc/sys/vm/drop_caches"
 sync ; echo 3 > /proc/sys/vm/drop_caches
+
+	echo "echo 1 > /proc/sys/vm/compact_memory"
+	echo 1 > /proc/sys/vm/compact_memory
 
 echo "echo always > /sys/kernel/mm/transparent_hugepage/enabled"
 echo always > /sys/kernel/mm/transparent_hugepage/enabled
@@ -36,6 +42,9 @@ exit
 # thp no defrag
 echo "sync ; echo 3 > /proc/sys/vm/drop_caches"
 sync ; echo 3 > /proc/sys/vm/drop_caches
+
+	echo "echo 1 > /proc/sys/vm/compact_memory"
+	echo 1 > /proc/sys/vm/compact_memory
 
 echo "echo always > /sys/kernel/mm/transparent_hugepage/enabled"
 echo always > /sys/kernel/mm/transparent_hugepage/enabled
