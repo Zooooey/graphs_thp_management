@@ -27,7 +27,7 @@ inputs = {
 start_seed = {"Kronecker_25/": "0", "Twitter/": "0", "Sd1_Arc/": "0", "Wikipedia/": "0",
 	      "DBG_Kronecker_25/": "3287496", "DBG_Twitter/": "15994127", "DBG_Sd1_Arc/": "18290613", "DBG_Wikipedia/": "320944"}
 
-NUM_ITER = 1
+NUM_ITER = 3
 
 def parse_args():
   parser = argparse.ArgumentParser()
