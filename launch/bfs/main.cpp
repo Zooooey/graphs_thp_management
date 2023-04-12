@@ -76,6 +76,7 @@ void launch_perf(int cpid, const char* perf_cmd) {
   
   printf("Perf process spawned! cpid %d waiting to run %s\n", cpid, buf);
   while (stat (done_filename, &done_buffer) != 0) {}
+  printf("cpid %d running %s\n", cpid, buf);
 
   int err = execl("/bin/sh", "sh", "-c", buf, NULL);
   if (err == -1) printf("Error with perf!\n");
@@ -131,7 +132,6 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
 
   printf("THP tracking process spawned! cpid %d waiting to run\n", cpid);
   while (stat (done_filename, &done_buffer) != 0) {}
-  printf("child2 :cpid %d running\n", cpid);
   fflush(stdout);
 
   get_pfs(stat_filename.c_str(), &soft_pf1, &hard_pf1);
@@ -181,7 +181,6 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
 }
 
 void launch_app(string graph_fname, int run_kernel, unsigned long start_seed) {
-  printf("main process start to launch app!\n");
   csr_graph G;
   unsigned long *ret, in_index, out_index, *in_wl, *out_wl;
   double user_time1, kernel_time1, user_time2, kernel_time2;
@@ -191,7 +190,6 @@ void launch_app(string graph_fname, int run_kernel, unsigned long start_seed) {
 
   // Initialize data and create irregular data
   G = parse_bin_files(graph_fname, run_kernel, 1);
-  printf("parse binary files done!\n");
 
   create_irreg_data(run_kernel, &ret);
   init_kernel(num_nodes, start_seed, &in_index, &out_index, &in_wl, &out_wl, &ret);
@@ -268,7 +266,6 @@ int main(int argc, char** argv) {
   if (!parent_mask) numa_error((char*) "numa_allocate_nodemask");
   // numa node bind mask
   numa_bitmask_setbit(parent_mask, 1);
-  //numa_bitmask_setbit(parent_mask, 3);
   numa_set_membind(parent_mask); 
   if (run_kernel >= 0) {
     pid = getpid();
@@ -282,9 +279,7 @@ int main(int argc, char** argv) {
     if (cpid == 0) {
       numa_set_membind(parent_mask); 
       launch_perf(cpid, perf_cmd); // child process running perf
-      printf("perf ran!\n");
     } else {
-      printf("else!\n");
       numa_set_membind(parent_mask);
       setpgid(cpid, 0); // set the child the leader of its process group
 
