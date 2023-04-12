@@ -129,7 +129,10 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
   system(cmd.c_str());
   */
 
+
+  printf("THP tracking process spawned! cpid %d waiting to run\n", cpid);
   while (stat (done_filename, &done_buffer) != 0) {}
+  printf("cpid %d running\n", cpid);
   fflush(stdout);
 
   get_pfs(stat_filename.c_str(), &soft_pf1, &hard_pf1);
@@ -295,20 +298,17 @@ int main(int argc, char** argv) {
         numa_set_membind(parent_mask);
         launch_thp_tracking(cpid2, run_kernel, thp_filename, pf_filename, max_demotion_scans); // child process tracking THPs
       } else {
-        printf("main_process:1\n");
         numa_set_membind(parent_mask);
         setpgid(cpid2, 0); // set the child the leader of its process group
 
         // Run app process
         launch_app(graph_fname, run_kernel, start_seed);
 
-        printf("main_process:2\n");
         // kill child processes and all their descendants, e.g. sh, perf stat, etc.
         kill(-cpid, SIGINT); // stop perf stat 
         //kill(-cpid2, SIGINT); // stop tracking THPs
    
         remove(done_filename);
-        printf("main_process:3\n");
       }
     }
   }
