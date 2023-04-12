@@ -160,20 +160,8 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, (ret.nodes+1) * sizeof(unsigned long));
     ret.node_array = static_cast<unsigned long*>(tmp);
 
-	//ccy start
-    //err = madvise(tmp, ret.nodes * sizeof(unsigned long), MADV_HUGEPAGE);
-    //if (err != 0) perror("Error! valuses_array");
-    //else cout << "madvise vertex_array successful! ret.nodes:"<<ret.nodes<<" memory size(bytes):"<<ret.nodes*sizeof(unsigned long) << endl;
-	//ccy end
-
     posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     ret.edge_array = static_cast<unsigned long*>(tmp);
-
-	//ccy start
-    //err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
-    //if (err != 0) perror("Error! valuses_array");
-    //else cout << "madvise edge_array successful! ret.edges:"<<ret.edges<<" memory size(bytes):"<<ret.edges*sizeof(unsigned long) << endl;
-	//ccy end
     
     if (is_bfs == 0) {
       posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
