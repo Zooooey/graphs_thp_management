@@ -101,9 +101,11 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     err = madvise(tmp, ret.nodes * sizeof(unsigned long), MADV_HUGEPAGE);
     if (err != 0) perror("Error! madvise vertex_array");
     else cout << "madvise vertex array memory successful!" << endl;
-
+    
+    /*
     err = lock_memory((char*) tmp, ret.nodes * sizeof(unsigned long));
     if (err != 0) perror("Error!");
+    */
     
     ret.node_array = static_cast<unsigned long*>(tmp);
     
@@ -124,9 +126,10 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     if (err != 0) perror("Error! madvise edge_array");
     else cout << "madvise edge_array successful!" << endl;
 
-    
+    /* 
     err = lock_memory((char*) tmp, ret.edges * sizeof(unsigned long));
     if (err != 0) perror("Error!");
+    */
     
     
     ret.edge_array = static_cast<unsigned long*>(tmp);
@@ -142,19 +145,40 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     ret.edge_array = static_cast<unsigned long*>(tmp);
     
-    posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     int err;
     err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
     if (err != 0) perror("Error! valuses_array");
     else cout << "madvise values_array successful!" << endl;
 
-    
+    /* 
     err = lock_memory((char*) tmp, ret.edges * sizeof(unsigned long));
     if (err != 0) perror("Error!");
+    */
     
 
     ret.edge_values = static_cast<weightT*>(tmp);
-  } else {
+  } else if (run_kernel >=1000 && run_kernel<=1200){
+    //prop_array 100% edge_array 0%-100% vertex_array 0-100%.
+    //The ratio of Transparent Huge Pages (THP) depends on the 'demote' function.
+    posix_memalign(&tmp, 1 << 21, (ret.nodes+1) * sizeof(unsigned long));
+    ret.node_array = static_cast<unsigned long*>(tmp);
+    
+    int err;
+    err = madvise(tmp, ret.nodes * sizeof(unsigned long), MADV_HUGEPAGE);
+	//advise edge into thp
+    if (err != 0) perror("Error! madvise edge_array");
+    else cout << "madvise edge_array successful!" << endl;
+
+    posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
+    ret.edge_array = static_cast<unsigned long*>(tmp);
+
+    int err;
+    err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
+	//advise edge into thp
+    if (err != 0) perror("Error! madvise edge_array");
+    else cout << "madvise edge_array successful!" << endl;
+
+  }else {
     int err;
 
     posix_memalign(&tmp, 1 << 21, (ret.nodes+1) * sizeof(unsigned long));

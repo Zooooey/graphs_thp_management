@@ -33,6 +33,7 @@ string smaps_filename, stat_filename;
 int pid, pidfd;
 unsigned long num_nodes, num_edges, num_thp_nodes, total_num_thps;
 unsigned long **node_addr, **edge_addr, **ret_addr;
+unsigned long *base_addr_demote;
 
 struct iovec iov;
 float threshold;
@@ -99,12 +100,19 @@ void demote_pages(unsigned long *curr_num_thps) {
   iov.iov_len = pmd_pagesize;
  
   // Demote cold pages based on threshold
-  iov.iov_base = (char*) *ret_addr+pages_to_promote*pmd_pagesize;
+  base_addr_demote = *ret_addr; // prop_addr 
+  if(run_kernel >=1000 && run_kernel < 1100){
+    base_addr_demote = *edge_addr;
+  } else if (run_kernel >=1100 && run_kernel <=1200){
+    base_addr_demote = *edge_addr;
+  }
+
+  iov.iov_base = (char*) base_addr_demote+pages_to_promote*pmd_pagesize;
   iov.iov_len = pages_to_demote*pmd_pagesize;
   out = syscall(SYS_process_madvise, pidfd, &iov, 1, MADV_DEMOTE, 0);
   if (out < 0) perror("Error!");
   
-  *curr_num_thps = check_huge((unsigned long*) *ret_addr, smaps_filename.c_str())/THP_SIZE_KB;
+  *curr_num_thps = check_huge((unsigned long*) base_addr_demote, smaps_filename.c_str())/THP_SIZE_KB;
   fprintf(stderr, "after THPs = %lu, demotions = %lu\n", *curr_num_thps, demotions);
 }
 
@@ -121,6 +129,11 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
 
   setup_pagemaps(pid);
   total_num_thps = (num_nodes*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
+  if (run_kernel >=1000 && run_kernel <1100){
+	total_num_thps = ((num_nodes + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
+  }else if(run_kernel >=1100 && run_kernel<=1200) {
+	total_num_thps = ((num_edges + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
+  }
   
   /*
   cmd = "taskset -cp 0 " + to_string(pid);
@@ -201,6 +214,11 @@ void launch_app(string graph_fname, int run_kernel, unsigned long start_seed) {
 
   setup_pagemaps(pid); 
   total_num_thps = (num_nodes*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
+  if (run_kernel >=1000 && run_kernel <1100){ 
+    total_num_thps = ((num_nodes + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize; 
+  }else if(run_kernel >=1100 && run_kernel<1200) { 
+    total_num_thps = ((num_edges + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize; 
+  }
 
   // Signal to other processes that app execution will start
   ofstream output(done_filename);
@@ -291,6 +309,13 @@ int main(int argc, char** argv) {
       nodes_edges_file >> num_nodes;
       nodes_edges_file >> num_edges;
       threshold = run_kernel*PERCENT_INTERVAL;
+	  if (run_kernel >=1000 && run_kernel<1100){
+     	threshold = (run_kernel-1000)/100.0;
+	    printf("run_kernel:%d threshold:%f\n",run_kernel, threshold);
+      }else if (run_kernel >=1100 && run_kernel<=1200){
+     	threshold = (run_kernel-1100)/100.0;
+	    printf("run_kernel:%d threshold:%f\n",run_kernel, threshold);
+	  }
 
       // FORK #2: Create THP tracking process
       int cpid2 = fork();
