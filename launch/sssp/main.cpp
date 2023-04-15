@@ -99,7 +99,7 @@ void demote_pages(unsigned long *curr_num_thps) {
   if(run_kernel >=1000 && run_kernel < 1100){
     base_addr_demote = *edge_addr;
   } else if (run_kernel >=1100 && run_kernel <=1200){
-    base_addr_demote = *edge_addr;
+    base_addr_demote = *node_addr;
   }
   iov.iov_base = (char*) base_addr_demote+pages_to_promote*pmd_pagesize;
   iov.iov_len = pages_to_demote*pmd_pagesize;
@@ -124,9 +124,9 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
   setup_pagemaps(pid);
   total_num_thps = (num_nodes*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
   if (run_kernel >=1000 && run_kernel <1100){
-	total_num_thps = ((num_nodes + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
-  }else if(run_kernel >=1100 && run_kernel<=1200) {
 	total_num_thps = ((num_edges + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
+  }else if(run_kernel >=1100 && run_kernel<=1200) {
+	total_num_thps = ((num_nodes + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
   }
   
   /*
@@ -208,9 +208,9 @@ void launch_app(string graph_fname, int run_kernel, unsigned long start_seed) {
   setup_pagemaps(pid); 
   total_num_thps = (num_nodes*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
   if (run_kernel >=1000 && run_kernel <1100){
-	total_num_thps = ((num_nodes + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
-  }else if(run_kernel >=1100 && run_kernel<=1200) {
 	total_num_thps = ((num_edges + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
+  }else if(run_kernel >=1100 && run_kernel<=1200) {
+	total_num_thps = ((num_nodes + 1)*sizeof(unsigned long)+pmd_pagesize-1)/pmd_pagesize;
   }
 
   // Signal to other processes that app execution will start

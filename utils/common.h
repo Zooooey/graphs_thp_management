@@ -145,6 +145,7 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     ret.edge_array = static_cast<unsigned long*>(tmp);
     
+    posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     int err;
     err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
     if (err != 0) perror("Error! valuses_array");
