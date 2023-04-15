@@ -158,9 +158,23 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     
 
     ret.edge_values = static_cast<weightT*>(tmp);
-  } else if (run_kernel >=1000 && run_kernel<=1200){
-    //prop_array 100% edge_array 0%-100% vertex_array 0-100%.
-    //The ratio of Transparent Huge Pages (THP) depends on the 'demote' function.
+  } else if (run_kernel >=1000 && run_kernel <= 1100){
+    //prop_array 100% edge_array 0%-100% vertex_array 0%.
+    //The ratio of Transparent Huge Pages (THP) depends on the 'demote' function. What we need to do here is put the whole data struct into THP
+    posix_memalign(&tmp, 1 << 21, (ret.nodes+1) * sizeof(unsigned long));
+    ret.node_array = static_cast<unsigned long*>(tmp);
+    
+    posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
+    ret.edge_array = static_cast<unsigned long*>(tmp);
+
+    int err;
+    err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
+	//advise edge into thp
+    if (err != 0) perror("Error! madvise edge_array");
+    else cout << "madvise edge_array successful!" << endl;
+  } else if (run_kernel >1100 && run_kernel<=1200){
+    //prop_array 100% edge_array 100% vertex_array 0-100%.
+    //The ratio of Transparent Huge Pages (THP) depends on the 'demote' function. What we need to do here is put the whole data struct into THP
     posix_memalign(&tmp, 1 << 21, (ret.nodes+1) * sizeof(unsigned long));
     ret.node_array = static_cast<unsigned long*>(tmp);
     

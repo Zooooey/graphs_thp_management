@@ -62,6 +62,15 @@ void create_irreg_data(int run_kernel, float **ret) {
       int err = lock_memory((char*) ret, num_nodes * sizeof(float));
       if (err != 0) perror("Error!");
       */
+    } else if (run_kernel >= 1000 && run_kernel <=1200){
+      int err = madvise(*ret, num_nodes * sizeof(unsigned long), MADV_HUGEPAGE);
+      if (err != 0) perror("Error! madvise prop_array");
+      else cout << "MADV_HUGEPAGE prop_array successful! num_nodes:"<<num_nodes<<" property memory region size(bytes):"<<num_nodes*sizeof(unsigned long) << endl;
+        
+      //FIXME: should I lock here?
+      int err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
+      if (err != 0) perror("Error!");
+
     } else {
       num_thp_nodes = num_nodes;
     }

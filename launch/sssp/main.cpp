@@ -61,6 +61,14 @@ void create_irreg_data(int run_kernel, unsigned long** ret) {
       int err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
       if (err != 0) perror("Error!");
       */
+    } else if (run_kernel >=1000 && run_kernel <= 1200){
+      int err = madvise(*ret, num_nodes * sizeof(unsigned long), MADV_HUGEPAGE);
+      if (err != 0) perror("Error!");
+      else cout << "MADV_HUGEPAGE ret successful!" << endl;
+
+      int err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
+      if (err != 0) perror("Error!");
+
     } else {
       num_thp_nodes = num_nodes;
     }
