@@ -38,8 +38,8 @@ echo "sudo python3 go.py --experiment=$EXP --dataset=$DATASET --app=$APP --confi
 sudo python3 go.py --experiment=$EXP --dataset=$DATASET --app=$APP --config=$CONFIG
 
 exit
-
-# thp no defrag
+#
+## thp no defrag
 echo "sync ; echo 3 > /proc/sys/vm/drop_caches"
 sync ; echo 3 > /proc/sys/vm/drop_caches
 

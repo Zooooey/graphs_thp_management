@@ -33,6 +33,7 @@ string smaps_filename, stat_filename;
 int pid, pidfd;
 unsigned long num_nodes, num_edges, num_thp_nodes, total_num_thps;
 unsigned long **node_addr, **edge_addr, **ret_addr;
+unsigned long *base_addr_demote;
 
 struct iovec iov;
 float threshold;
@@ -66,8 +67,8 @@ void create_irreg_data(int run_kernel, unsigned long** ret) {
       if (err != 0) perror("Error!");
       else cout << "MADV_HUGEPAGE ret successful!" << endl;
 
-      int err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
-      if (err != 0) perror("Error!");
+      //err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
+      //if (err != 0) perror("Error!");
 
     } else {
       num_thp_nodes = num_nodes;
@@ -91,7 +92,7 @@ void launch_perf(int cpid, const char* perf_cmd) {
   fflush(stdout);
 }
 
-void demote_pages(unsigned long *curr_num_thps) { 
+void demote_pages(unsigned long *curr_num_thps, int run_kernel) { 
   ssize_t out;
   unsigned long pages_to_promote, pages_to_demote;
   unsigned long demotions = 0;
@@ -174,7 +175,7 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
     }
 
     if (run_kernel > 0) {
-      demote_pages(&curr_num_thps);
+      demote_pages(&curr_num_thps, run_kernel);
     }
 
     usleep(SLEEP_TIME);

@@ -33,6 +33,7 @@ string smaps_filename, stat_filename;
 int pid, pidfd, policy;
 unsigned long num_nodes, num_edges, num_thp_nodes, total_num_thps;
 unsigned long **node_addr, **edge_addr;
+unsigned long *base_addr_demote;
 float  **ret_addr;
 
 struct iovec iov;
@@ -68,8 +69,8 @@ void create_irreg_data(int run_kernel, float **ret) {
       else cout << "MADV_HUGEPAGE prop_array successful! num_nodes:"<<num_nodes<<" property memory region size(bytes):"<<num_nodes*sizeof(unsigned long) << endl;
         
       //FIXME: should I lock here?
-      int err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
-      if (err != 0) perror("Error!");
+      //err = lock_memory((char*) ret, num_nodes * sizeof(unsigned long));
+      //if (err != 0) perror("Error!");
 
     } else {
       num_thp_nodes = num_nodes;
@@ -93,7 +94,7 @@ void launch_perf(int cpid, const char* perf_cmd) {
   fflush(stdout);
 }
 
-void demote_pages(unsigned long *curr_num_thps) { 
+void demote_pages(unsigned long *curr_num_thps, int run_kernel) { 
   ssize_t out;
   unsigned long pages_to_promote, pages_to_demote;
   unsigned long demotions = 0;
@@ -105,7 +106,7 @@ void demote_pages(unsigned long *curr_num_thps) {
   iov.iov_len = pmd_pagesize;
  
   // Demote cold pages based on threshold
-  base_addr_demote = *ret_addr; // prop_addr 
+  base_addr_demote = (unsigned long*)*ret_addr; // prop_addr 
   if(run_kernel >=1000 && run_kernel < 1100){
     base_addr_demote = *edge_addr;
   } else if (run_kernel >=1100 && run_kernel <=1200){
@@ -176,7 +177,7 @@ void launch_thp_tracking(int cpid, int run_kernel, const char* thp_filename, con
     }
 
     if (run_kernel > 0) {
-      demote_pages(&curr_num_thps);
+      demote_pages(&curr_num_thps, run_kernel);
     }
 
     usleep(SLEEP_TIME);

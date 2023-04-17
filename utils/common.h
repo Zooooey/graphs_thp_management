@@ -187,11 +187,13 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
     ret.edge_array = static_cast<unsigned long*>(tmp);
 
-    int err;
     err = madvise(tmp, ret.edges * sizeof(unsigned long), MADV_HUGEPAGE);
 	//advise edge into thp
     if (err != 0) perror("Error! madvise edge_array");
     else cout << "madvise edge_array successful!" << endl;
+
+    //err = lock_memory((char*) tmp, ret.edges * sizeof(unsigned long));
+    //if (err != 0) perror("Error!");
 
   }else {
     int err;

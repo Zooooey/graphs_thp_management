@@ -27,7 +27,7 @@ inputs = {
 start_seed = {"Kronecker_25/": "0", "Twitter/": "0", "Sd1_Arc/": "0", "Wikipedia/": "0",
 	      "DBG_Kronecker_25/": "3287496", "DBG_Twitter/": "15994127", "DBG_Sd1_Arc/": "18290613", "DBG_Wikipedia/": "320944"}
 
-NUM_ITER = 3
+NUM_ITER = 1
 
 def parse_args():
   parser = argparse.ArgumentParser()
@@ -95,8 +95,8 @@ def run_data_struct():
   default = "thp" if is_thp == 1 else "none"
   #end = 400 if is_thp == 0 else 1
   end = 400 if (is_thp == 0 or is_madvise_thp == True) else 1
+  exp_type = "data_struct/"
   for madvise in range(0, end, 100):
-    exp_type = "data_struct/"
     if madvise == 100:
       exp_type += "prop_array"
     elif madvise == 200:
@@ -152,6 +152,18 @@ def run_select_thp():
     else:
       exp_type += "thp_" + str(madvise*5)
     setup_run(madvise, exp_type)
+  if is_madvise_thp:
+    for madvise in range(1000, 1201, 10):
+        exp_type = "select_thp/"
+        if madvise >=1000 and madvise <1100:
+            exp_type += "edge_" + str(madvise-1000)
+        else:
+            exp_type += "vertex_" + str(madvise-1100)
+        setup_run(madvise, exp_type)
+  else:
+    print("??")
+   
+    
 
 # EXPERIMENTS
 experiments = {
@@ -172,13 +184,18 @@ def main():
   output_str1 = stdout.read().decode("utf-8")
   stdout = Popen("cat /sys/kernel/mm/transparent_hugepage/defrag", shell=True, stdout=PIPE).stdout
   output_str2 = stdout.read().decode("utf-8")
-  if (output_str1.startswith("[always]") and output_str2.startswith("[always]")):
+  print("str1:"+output_str1)
+  #if (output_str1.startswith("[always]") and output_str2.startswith("[always]")):
+  if "[always]" in output_str1 and "[always]" in output_str2:
     is_thp = 1
     is_madvise_thp = False
-  elif (output_str1.startswith("[always]") and not output_str2.startswith("[always]")):
+  #elif (output_str1.startswith("[always]") and not output_str2.startswith("[always]")):
+  elif "[always]" in output_str1 and not "[always]" in output_str2:
     is_thp = 2
     is_madvise_thp = False
-  elif output_str1.startswith("[madvise]") :
+  #elif output_str1.startswith("[madvise]") :
+  elif "[madvise]" in output_str1 :
+    is_thp = 0
     is_madvise_thp = True
   else:
     is_thp = 0
@@ -200,8 +217,9 @@ def main():
     
   for dataset in datasets:
     vp_inputs += [dataset + "/"]
-    if args.experiment == 5:
-      vp_inputs += ["DBG_" + dataset + "/"]
+    # remove DBG temporarily
+    #if args.experiment == 5:
+    #  vp_inputs += ["DBG_" + dataset + "/"]
 
   # Experiments 
   if args.experiment != -1:
@@ -214,9 +232,10 @@ def main():
     run_data_struct()
     run_constrained_mem()
     run_frag_mem()
-  
-    for dataset in datasets:
-      vp_inputs += ["DBG_" + dataset + "/"]
+    
+    # remove DBG temporarily
+    #for dataset in datasets:
+    #  vp_inputs += ["DBG_" + dataset + "/"]
     run_select_thp()
 
 if __name__ == "__main__":
