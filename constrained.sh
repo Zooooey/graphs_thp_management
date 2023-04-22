@@ -5,9 +5,9 @@ datasets=(Kronecker_25 Twitter Sd1_Arc Wikipedia)
 offsets=(3072 2560 2048 1536 1024 512 0 -512) # MB
 
 NUMA_NODE=1 # EDIT THIS VALUE (NUMA NODE)
-MAX_RAM=64000 # EDIT THIS VALUE (AMOUNT OF MEMORY ON NUMA NODE)
+MAX_RAM=32000 # EDIT THIS VALUE (AMOUNT OF MEMORY ON NUMA NODE)
 
-EXP_NUM=3
+EXP_NUM=1
 
 re1='^[0-9]*\.00$' # 0.00 (integer) regex
 re2='^-*[0-9]*\.50$' # 0.5 regex

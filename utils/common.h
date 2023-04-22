@@ -157,7 +157,10 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
     */
     
 
-    ret.edge_values = static_cast<weightT*>(tmp);
+    if (is_bfs == 0) {
+      posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
+      ret.edge_values = static_cast<weightT*>(tmp);
+    }
   } else if (run_kernel >=1000 && run_kernel <= 1100){
     //prop_array 100% edge_array 0%-100% vertex_array 0%.
     //The ratio of Transparent Huge Pages (THP) depends on the 'demote' function. What we need to do here is put the whole data struct into THP
@@ -172,6 +175,11 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
 	//advise edge into thp
     if (err != 0) perror("Error! madvise edge_array");
     else cout << "madvise edge_array successful!" << endl;
+
+    if (is_bfs == 0) {
+      posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
+      ret.edge_values = static_cast<weightT*>(tmp);
+    }
   } else if (run_kernel >1100 && run_kernel<=1200){
     //prop_array 100% edge_array 100% vertex_array 0-100%.
     //The ratio of Transparent Huge Pages (THP) depends on the 'demote' function. What we need to do here is put the whole data struct into THP
@@ -194,7 +202,10 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
 
     //err = lock_memory((char*) tmp, ret.edges * sizeof(unsigned long));
     //if (err != 0) perror("Error!");
-
+    if (is_bfs == 0) {
+      posix_memalign(&tmp, 1 << 21, ret.edges * sizeof(unsigned long));
+      ret.edge_values = static_cast<weightT*>(tmp);
+    }
   }else {
     int err;
 
@@ -213,13 +224,14 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
   // ***** NODE ARRAY *****
   fp = fopen((base + "node_array.bin").c_str(), "rb");
 
-  if (ret.edges > MAX_EDGES) {
-    cout << "reading byte length of:    " << (ret.nodes + 1) * sizeof(unsigned long) << endl;
+  if (ret.nodes > MAX_EDGES) {
+    cout <<"ret.nodes > MAX_EDGES:"<<MAX_EDGES<<endl;
+    cout << "reading node array byte length of:    " << (ret.nodes + 1) * sizeof(unsigned long) << endl;
     for (unsigned long n = 0; n < ret.nodes + 1; n++) {
       fread(&ret.node_array[n], sizeof(unsigned long), 1, fp);
     }
   } else {
-    cout << "reading byte length of:    " << (ret.nodes + 1) * sizeof(unsigned int) << endl;
+    cout << "reading node array byte length of:    " << (ret.nodes + 1) * sizeof(unsigned int) << endl;
     
     for (unsigned long n = 0; n < ret.nodes + 1; n++) {
       fread(&ret.node_array[n], sizeof(unsigned int), 1, fp);
@@ -233,13 +245,14 @@ csr_graph parse_bin_files(string base, int run_kernel=0, int is_bfs=0) {
   fp = fopen((base + "edge_array.bin").c_str(), "rb");
 
   if (ret.edges > MAX_EDGES) {
-    cout << "reading byte length of:    " << (ret.edges) * sizeof(unsigned long) << endl;
+    cout <<"ret.edges > MAX_EDGES:"<<MAX_EDGES<<endl;
+    cout << "reading edge array byte length of:    " << (ret.edges) * sizeof(unsigned long) << endl;
     
     for (unsigned long e = 0; e < ret.edges; e++) {
       fread(&ret.edge_array[e], sizeof(unsigned long), 1, fp);
     }
   } else {
-    cout << "reading byte length of:    " << (ret.edges) * sizeof(unsigned int) << endl;
+    cout << "reading edge array byte length of:    " << (ret.edges) * sizeof(unsigned int) << endl;
     
     for (unsigned long e = 0; e < ret.edges; e++) {
       fread(&ret.edge_array[e], sizeof(unsigned int), 1, fp);
